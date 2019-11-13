@@ -1,15 +1,21 @@
+rg_name=azuretest
+pg_server_name=sonar13112019
+asp_plan_name=sonarqube-asp
+pg_admin_user=sonar
+pg_admin_pass=COMPLEXP!ssw0rd
+
 az login
 
 # Create resource group
-az group create --name sonarqubedc --location "southeastasia"
+az group create --name $rg_name --location "eastus"
 # Create app service plan
-az appservice plan create --name sonarqubedc-asp --resource-group sonarqubedc --sku S1 --is-linux
+az appservice plan create --name $asp_plan_name --resource-group $rg_name --sku F1 --is-linux
 # Create postgresql 
-az postgres server create --resource-group sonarqubedc --name sonar06032019 --location "southeastasia" --admin-user sonar --admin-password COMPLEXP!ssw0rd --sku B_Gen5_1
-az postgres db create --name sonar --resource-group sonarqubedc --server-name sonar06032019
-az postgres server firewall-rule create --name allAzureIPs --server sonar06032019 --resource-group sonarqubedc --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
+az postgres server create --resource-group $rg_name --name $pg_server_name --location "eastus" --admin-user $pg_admin_user --admin-password $pg_admin_pass --sku B_Gen5_1
+az postgres db create --name sonar --resource-group $rg_name --server-name $pg_server_name
+az postgres server firewall-rule create --name allAzureIPs --server $pg_server_name --resource-group $rg_name --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
 
 # Set the configuration files
-az webapp create --resource-group sonarqubec --plan sonarqubec-asp --name sonarqubec-container --deployment-container-image-name "alpine"
-az webapp config appsettings set --resource-group sonarqubec --name sonarqubec-container --settings SONARQUBE_JDBC_URL="jdbc:postgresql://sonarc06032019.postgres.database.azure.com:5432/sonar?user=sonar@sonarc06032019&password=Warhorse!23&sslmode=required" SONARQUBE_JDBC_USERNAME="sonar" SONARQUBE_JDBC_PASSWORD="Warhorse!23"
-az webapp config container set --resource-group sonarqubec --name sonarqubec-container --enable-app-service-storage true --docker-custom-image-name "pratapgowda/azuresonarqube:latest"
+az webapp create --resource-group sonarqubec --plan $asp_plan_name --name sonarqubec-container --deployment-container-image-name "alpine"
+az webapp config appsettings set --resource-group $rg_name --name sonarqubec-container --settings SONARQUBE_JDBC_URL="jdbc:postgresql://${pg_server_name}.postgres.database.azure.com:5432/sonar?user=sonar@${pg_server_name}&password=COMPLEXP!ssw0rd&sslmode=required" SONARQUBE_JDBC_USERNAME="sonar" SONARQUBE_JDBC_PASSWORD="COMPLEXP!ssw0rd"
+az webapp config container set --resource-group $rg_name --name sonarqubec-container --enable-app-service-storage true --docker-custom-image-name "pratapgowda/azuresonarqube:latest"
